@@ -96,9 +96,10 @@ const char *loader_boot(uintptr_t dtb)
 	con_hex("VIRT", p->virt_base);
 	con_hex("ENTRY", p->entry_va);
 
-	/* The payload must not overlap where the kernel goes. */
-	if (rd_end > p->phys_base && rd_start < p->phys_base + p->mem_size)
-		return "ramdisk overlaps kernel memory";
+	/* The payload must not overlap where the kernel payload unpacks. */
+	uintptr_t kernel_unpack_end = p->kernel_end + pa_of_va_base + 0x40000UL;
+	if (rd_end > p->phys_base && rd_start < kernel_unpack_end)
+		return "ramdisk overlaps kernel binary";
 
 	for (uint32_t i = 0; i < p->nsegs; i++) {
 		const struct payload_seg *s = &p->segs[i];
