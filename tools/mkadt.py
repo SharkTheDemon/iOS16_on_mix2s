@@ -70,7 +70,7 @@ MACHINES = {
         compatible=('D22AP', 'iPhone10,3', 'xiaomi,polaris', 'qcom,sdm845', 'AppleARM'),
         model=b'iPhone10,3', target_type=b'D22', target_sub=b'D22AP',
         io_devtype=b'polaris-io', io_compat=b'polaris-io',
-        cpu_compat=('qcom,kryo385', 'ARM,v8'),
+        cpu_compat=('qcom,kryo470', 'qcom,kryo385', 'ARM,v8'),
         # SDM845: cluster 0 = Kryo 385 Gold (Cortex-A75, 2.8GHz, cores 0-3),
         # cluster 1 = Kryo 385 Silver (Cortex-A55, 1.8GHz, cores 4-7). The DTB
         # cpu@0..cpu@300 have reg <0x0>..<0x300> => big-first (cores 0-3 big).
@@ -87,10 +87,10 @@ MACHINES = {
         ufs=0x01d84000, ufs_size=0x2500,
         timebase=19200000, vtimer_intid=19,
         canvas_w=1440, canvas_h=2960,
-        compatible=('D22AP', 'iPhone10,3', 'google,crosshatch', 'qcom,sdm845', 'AppleARM'),
+        compatible=('D22AP', 'iPhone10,3', 'xiaomi,sweet', 'xiaomi,polaris', 'google,crosshatch', 'qcom,sdm845', 'AppleARM'),
         model=b'iPhone10,3', target_type=b'D22', target_sub=b'D22AP',
         io_devtype=b'crosshatch-io', io_compat=b'crosshatch-io',
-        cpu_compat=('qcom,kryo385', 'ARM,v8'),
+        cpu_compat=('qcom,kryo470', 'qcom,kryo385', 'ARM,v8'),
         big_clk=2803200000, little_clk=1804800000, big_first=True,
     ),
 }
@@ -214,7 +214,7 @@ def build(machine='polaris', qemu=False, highmem=False):
         node('disp0', [
             ph(),
             ('device_type', cstr('display-subsystem')),
-            ('compatible', cstr(('polaris,display' if machine == 'polaris' else 'sweet,display'))),
+            ('compatible', cstr(('polaris,display' if machine in ('polaris', 'crosshatch') else 'sweet,display'))),
             ('canvas-width', u32(m['canvas_w'])),
             ('canvas-height', u32(m['canvas_h'])),
         ])])

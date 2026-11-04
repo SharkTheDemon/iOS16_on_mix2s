@@ -1,0 +1,63 @@
+name: build-ios-root-linux
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ios-root-linux-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rootfs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install required build packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y apfs-fuse hfsprogs rsync curl unzip python3
+
+      - name: Download iPhone X iOS 16.7.16 IPSW
+        run: |
+          IPSW_URL="https://updates.cdn-apple.com/2025FallFCS/fullrestores/122-77006/1158E502-D76D-4226-AA06-ED5E30CD1111/iPhone10,3,iPhone10,6_16.7.16_20H392_Restore.ipsw"
+          echo "Downloading IPSW from Apple CDN..."
+          curl -fSL -o ipsw.zip "$IPSW_URL"
+          ls -lh ipsw.zip
+
+      - name: Extract required DMGs from IPSW
+        run: |
+          echo "Extracting DMGs..."
+          unzip -p ipsw.zip 087-86698-044.dmg > OS.dmg
+          unzip -p ipsw.zip 087-86593-047.dmg > SYSTEMOS.dmg
+          unzip -p ipsw.zip 087-86715-047.dmg > APPOS.dmg
+          rm ipsw.zip
+          ls -lh *.dmg
+
+      - name: Build HFS+ Root Volume using mkiosroot.sh
+        run: |
+          chmod +x tools/mkiosroot.sh
+          # Create an 11GB image to fit the files and shared cache
+          sudo ./tools/mkiosroot.sh OS.dmg SYSTEMOS.dmg APPOS.dmg ios16-root.raw 11G
+          ls -lh ios16-root.raw
+          rm -f *.dmg
+
+      - name: Convert to Android Sparse Image
+        run: |
+          python3 tools/img2simg.py ios16-root.raw ios16-root.simg
+          ls -lh ios16-root.simg
+          rm -f ios16-root.raw
+
+      - name: Compress Sparse Image
+        run: |
+          zip -1 ios16-root.simg.zip ios16-root.simg
+          ls -lh ios16-root.simg.zip
+          rm -f ios16-root.simg
+
+      - name: Upload RootFS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios16-root-sparse
+          path: ios16-root.simg.zip
+          retention-days: 14
