@@ -1,8 +1,10 @@
 English | [简体中文](README.zh-CN.md)
 
-# iOS 16 on Xiaomi Mi Mix 2S (`polaris` / Snapdragon 845)
+# iOS 16 on Pixel 3XL (`Crosshatch` / Snapdragon 845)
 
-Bringing **iOS 16 (XNU 8796, iPhone X userspace baseline)** to the **Xiaomi Mi Mix 2S (codename `polaris`, Qualcomm Snapdragon 845 / SDM845)**.
+Bringing **iOS 16 (XNU 8796, iPhone X userspace baseline)** to the **Pixel 3XL (codename `Crosshatch`, Qualcomm Snapdragon 845 / SDM845)**.
+
+Simple implementation for Pixel 3Xl barely booting
 
 ## About
 
