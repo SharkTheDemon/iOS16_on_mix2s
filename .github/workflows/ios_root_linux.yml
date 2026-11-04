@@ -46,8 +46,8 @@ jobs:
       - name: Build HFS+ Root Volume using mkiosroot.sh
         run: |
           chmod +x tools/mkiosroot.sh
-          # Create an 11GB image to fit the files and shared cache
-          sudo ./tools/mkiosroot.sh OS.dmg SYSTEMOS.dmg APPOS.dmg ios16-root.raw 11G
+          # Use 16G (the upstream default) to accommodate the uncompressed dyld cache and cryptexes
+          sudo ./tools/mkiosroot.sh OS.dmg SYSTEMOS.dmg APPOS.dmg ios16-root.raw 16G
           ls -lh ios16-root.raw
           rm -f *.dmg
 
