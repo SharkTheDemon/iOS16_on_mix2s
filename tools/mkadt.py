@@ -76,6 +76,23 @@ MACHINES = {
         # cpu@0..cpu@300 have reg <0x0>..<0x300> => big-first (cores 0-3 big).
         big_clk=2803200000, little_clk=1804800000, big_first=True,
     ),
+    'crosshatch': dict(
+        # Google Pixel 3 XL (crosshatch / SDM845):
+        # GICv3: Distributor 0x17a00000, Redistributor 0x17a60000
+        # UFS: 0x01d84000
+        # Framebuffer / cont_splash: 0x9d400000 (36MB, matching SDM845)
+        # Panel: 1440x2960 OLED, canvas 1440x2960 (or scaled iPhone X 1125x2436)
+        gicd=0x17a00000, gicd_size=0x10000, gicr=0x17a60000, gicr_size=0x100000,
+        fb=0x9d400000, fb_size=0x2400000, fb_w=1440, fb_h=2960, fb_stride=1440 * 4,
+        ufs=0x01d84000, ufs_size=0x2500,
+        timebase=19200000, vtimer_intid=19,
+        canvas_w=1440, canvas_h=2960,
+        compatible=('D22AP', 'iPhone10,3', 'google,crosshatch', 'qcom,sdm845', 'AppleARM'),
+        model=b'iPhone10,3', target_type=b'D22', target_sub=b'D22AP',
+        io_devtype=b'crosshatch-io', io_compat=b'crosshatch-io',
+        cpu_compat=('qcom,kryo385', 'ARM,v8'),
+        big_clk=2803200000, little_clk=1804800000, big_first=True,
+    ),
 }
 
 
@@ -242,11 +259,13 @@ def build(machine='polaris', qemu=False, highmem=False):
 
 if __name__ == '__main__':
     args = sys.argv[1:]
-    machine = 'polaris'
+    machine = 'crosshatch'
     if '--sweet' in args:
         machine = 'sweet'
     if '--polaris' in args:
         machine = 'polaris'
+    if '--crosshatch' in args:
+        machine = 'crosshatch'
     root = build(machine=machine, qemu='--qemu' in args, highmem='--highmem' in args)
     blob = adt.serialize(root)
     open(args[0], 'wb').write(blob)
