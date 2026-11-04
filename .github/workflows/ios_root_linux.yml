@@ -14,10 +14,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install required build packages
+      - name: Install required build packages and compile apfs-fuse
         run: |
           sudo apt-get update
-          sudo apt-get install -y apfs-fuse hfsprogs rsync curl unzip python3
+          sudo apt-get install -y hfsprogs rsync curl unzip python3 cmake build-essential libfuse3-dev libbz2-dev libz-dev
+          echo "Building apfs-fuse from source..."
+          git clone --recursive https://github.com/sgan81/apfs-fuse.git /tmp/apfs-fuse
+          cd /tmp/apfs-fuse
+          mkdir build && cd build
+          cmake ..
+          make -j$(nproc)
+          sudo make install
+          command -v apfs-fuse
 
       - name: Download iPhone X iOS 16.7.16 IPSW
         run: |
