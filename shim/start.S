@@ -20,6 +20,17 @@ _head:
 	.globl _start
 _start:
 	msr	daifset, #0xf
+
+	/* Early diagnostic fill: 720,000 pixels green (0x00ff00) at FB 0x9d400000 */
+	ldr	x2, =0x9d400000
+	ldr	w3, =0x00ff0000
+	ldr	x4, =720000
+.Lfb_fill:
+	str	w3, [x2], #4
+	subs	x4, x4, #1
+	b.ne	.Lfb_fill
+	dsb	sy
+
 	mov	x19, x0			/* DTB pointer from ABL */
 	msr	spsel, #1
 	adr	x1, _stack_top
