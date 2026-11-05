@@ -8,49 +8,19 @@ on:
 
 jobs:
   rootfs:
-    runs-on: ubuntu-latest
+    runs-on: macos-14
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install tools
+      - name: Build 32MB HFS+ Root on macOS using Apple newfs_hfs
         run: |
-          sudo apt-get update
-          sudo apt-get install -y hfsprogs zip python3
-
-      - name: Build 32MB HFS+ Root with sweet-init
-        run: |
-          # 1. Decode sweet-init
           mkdir -p /tmp/init-bin
-          base64 -d < tools/sweet-init.b64 > /tmp/init-bin/launchd
+          base64 -D < tools/sweet-init.b64 > /tmp/init-bin/launchd
           chmod 755 /tmp/init-bin/launchd
-
-          # 2. Create 32MB raw file
-          dd if=/dev/zero of=sweet-root.raw bs=1M count=32
-
-          # 3. Format as HFS+ with journal and case-sensitive
-          mkfs.hfsplus -s -J -v SweetRoot sweet-root.raw
-
-          # 4. Mount loopback with write permissions
-          mkdir -p /tmp/sweet-mount
-          sudo mount -t hfsplus -o loop,force sweet-root.raw /tmp/sweet-mount
-
-          # 5. Populate directory structure
-          sudo mkdir -p /tmp/sweet-mount/sbin
-          sudo mkdir -p /tmp/sweet-mount/dev
-          sudo mkdir -p /tmp/sweet-mount/private/var
-
-          # 6. Copy sweet-init as /sbin/launchd
-          sudo cp /tmp/init-bin/launchd /tmp/sweet-mount/sbin/launchd
-          sudo chmod 755 /tmp/sweet-mount/sbin/launchd
-          sudo chown 0:0 /tmp/sweet-mount/sbin/launchd
-
-          # Verify contents
-          sudo ls -la /tmp/sweet-mount/sbin/launchd
-          sudo find /tmp/sweet-mount
-
-          # Unmount cleanly
-          sudo umount /tmp/sweet-mount
+          chmod +x tools/mkhfsroot.sh
+          ./tools/mkhfsroot.sh sweet-root.raw 32 /tmp/init-bin/launchd
+          ls -lh sweet-root.raw
 
       - name: Convert to Android Sparse Image
         run: |
@@ -65,6 +35,6 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: sweet-root-sparse
+          name: sweet-root-sparse-macos
           path: sweet-root.simg.zip
           retention-days: 7
