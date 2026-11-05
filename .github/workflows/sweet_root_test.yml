@@ -1,6 +1,9 @@
 name: build-sweet-root-test
 
 on:
+  push:
+    paths:
+      - '.github/workflows/sweet_root_test.yml'
   workflow_dispatch:
 
 jobs:
