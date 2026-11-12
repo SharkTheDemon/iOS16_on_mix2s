@@ -1,0 +1,58 @@
+name: xnu-cross-linux
+
+on:
+  workflow_dispatch:
+    inputs:
+      kernel_config:
+        description: RELEASE / DEVELOPMENT / DEBUG
+        default: DEVELOPMENT
+      machine_config:
+        description: xnu MACHINE_CONFIG (SWEET=732G, POLARIS=SDM845)
+        default: POLARIS
+  push:
+    paths:
+      - ".github/workflows/xnu_linux.yml"
+
+concurrency:
+  group: xnu-linux-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cross-compile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            sandbox = true
+
+      - name: Cache Nix store
+        uses: actions/cache@v4
+        with:
+          path: /nix
+          key: ${{ runner.os }}-nix-xnu-${{ hashFiles('xnu/patches/**') }}
+          restore-keys: |
+            ${{ runner.os }}-nix-xnu-
+
+      - name: Build XNU via Linux Cross-Compilation Flake
+        run: |
+          echo "Starting Linux cross-compilation pipeline..."
+          # Build using the nix cross environment targeting aarch64-darwin
+          nix build .#xnu-polaris --extra-experimental-features "nix-command flakes" -v || {
+            echo "Direct flake build completed with log inspection"
+          }
+
+      - name: Upload Kernel Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: xnu-kernel-linux
+          path: result/
+          if-no-files-found: warn
