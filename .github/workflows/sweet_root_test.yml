@@ -8,16 +8,34 @@ on:
 
 jobs:
   rootfs:
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Download iPhone X iOS 16.7.16 IPSW & Extract Authentic Apple launchd
+        run: |
+          IPSW_URL="https://updates.cdn-apple.com/2025FallFCS/fullrestores/122-77006/1158E502-D76D-4226-AA06-ED5E30CD1111/iPhone10,3,iPhone10,6_16.7.16_20H392_Restore.ipsw"
+          echo "Downloading IPSW from Apple CDN..."
+          curl -fSL -o ipsw.zip "$IPSW_URL"
+          echo "Extracting OS.dmg (087-86698-044.dmg)..."
+          unzip -p ipsw.zip 087-86698-044.dmg > OS.dmg
+          rm ipsw.zip
+
+          echo "Mounting OS.dmg to extract /sbin/launchd..."
+          mkdir -p /tmp/os_mount
+          hdiutil attach -readonly -mountpoint /tmp/os_mount OS.dmg
+          
+          mkdir -p /tmp/init-bin
+          cp -av /tmp/os_mount/sbin/launchd /tmp/init-bin/launchd
+          ls -l /tmp/init-bin/launchd
+          file /tmp/init-bin/launchd
+
+          hdiutil detach /tmp/os_mount -force || true
+          rm OS.dmg
+
       - name: Build 32MB HFS+ Root on macOS using Apple newfs_hfs
         run: |
-          mkdir -p /tmp/init-bin
-          base64 -D < tools/sweet-init.b64 > /tmp/init-bin/launchd
-          chmod 755 /tmp/init-bin/launchd
           chmod +x tools/mkhfsroot.sh
           ./tools/mkhfsroot.sh sweet-root.raw 32 /tmp/init-bin/launchd
           ls -lh sweet-root.raw
@@ -27,14 +45,14 @@ jobs:
           python3 tools/img2simg.py sweet-root.raw sweet-root.simg
           ls -lh sweet-root.simg
 
-      - name: Zip Sparse Image
+      - name: Zip Raw and Sparse Image
         run: |
-          zip sweet-root.simg.zip sweet-root.simg
-          ls -lh sweet-root.simg.zip
+          zip sweet-root-apple-launchd.zip sweet-root.raw sweet-root.simg
+          ls -lh sweet-root-apple-launchd.zip
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: sweet-root-sparse-macos
-          path: sweet-root.simg.zip
+          name: sweet-root-apple-launchd
+          path: sweet-root-apple-launchd.zip
           retention-days: 7
