@@ -1,0 +1,29 @@
+--- a/bsd/dev/sweet_ufs.c
++++ b/bsd/dev/sweet_ufs.c
+@@ -354,7 +354,7 @@
+ {
+ 	int error = 0;
+ 	caddr_t vaddr = NULL;
+-	uint64_t off = (uint64_t)buf_blkno(bp) * su.secsize;
++	uint64_t off = (uint64_t)buf_blkno(bp) * DEV_BSIZE;
+ 	uint32_t count = buf_count(bp);
+ 	uint64_t part_bytes = su.nblocks * UFS_BLOCK;
+ 
+@@ -465,7 +465,7 @@
+ static int
+ sweet_ufs_read(dev_t dev, struct uio *uio, __unused int ioflag)
+ {
+-	return physio(sweet_ufs_strategy, NULL, dev, B_READ, minphys, uio, (int)su.secsize);
++	return physio(sweet_ufs_strategy, NULL, dev, B_READ, minphys, uio, DEV_BSIZE);
+ }
+ 
+ static int
+@@ -475,7 +475,7 @@
+ 	if (!su.writable) {
+ 		return EROFS;
+ 	}
+-	return physio(sweet_ufs_strategy, NULL, dev, B_WRITE, minphys, uio, (int)su.secsize);
++	return physio(sweet_ufs_strategy, NULL, dev, B_WRITE, minphys, uio, DEV_BSIZE);
+ }
+ 
+ static const struct bdevsw sweet_ufs_bdevsw = {
