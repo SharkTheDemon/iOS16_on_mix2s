@@ -33,7 +33,7 @@ jobs:
       - name: Build HFS+ Root Volume
         run: |
           chmod +x tools/mkiosroot-macos.sh
-          ./tools/mkiosroot-macos.sh ios16-root.raw OS.dmg SYSTEMOS.dmg APPOS.dmg
+          sudo ./tools/mkiosroot-macos.sh OS.dmg SYSTEMOS.dmg APPOS.dmg ios16-root.raw 12g
           ls -lh ios16-root.raw
 
       - name: Convert to Android Sparse Image
