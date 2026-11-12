@@ -24,8 +24,8 @@ jobs:
       - name: Extract required DMGs from IPSW
         run: |
           echo "Extracting DMGs..."
-          unzip -p ipsw.zip 087-86698-044.dmg > OS.dmg
-          unzip -p ipsw.zip 087-86593-047.dmg > SYSTEMOS.dmg
+          unzip -p ipsw.zip 087-86684-044.dmg > OS.dmg
+          unzip -p ipsw.zip 087-86580-047.dmg > SYSTEMOS.dmg
           unzip -p ipsw.zip 087-86715-047.dmg > APPOS.dmg
           rm ipsw.zip
           ls -lh *.dmg
