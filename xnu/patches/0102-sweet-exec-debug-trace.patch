@@ -1,0 +1,31 @@
+--- a/bsd/kern/kern_exec.c
++++ b/bsd/kern/kern_exec.c
+@@ -2218,6 +2218,17 @@
+ 	if (resid) {
+ 		memset(imgp->ip_vdata + (PAGE_SIZE - resid), 0x0, resid);
+ 	}
++
++	uint32_t *hdr = (uint32_t *)imgp->ip_vdata;
++	printf("SWEET EXEC: activate %s: res=%lu magic=0x%08x cpu=0x%08x sub=0x%08x type=0x%08x ncmds=%u\n",
++	    imgp->ip_vp->v_name ? imgp->ip_vp->v_name : "unknown",
++	    (unsigned long)resid, hdr[0], hdr[1], hdr[2], hdr[3], hdr[4]);
++	if (hdr[0] != 0xfeedfacf && hdr[0] != 0xfeedface && hdr[0] != 0xbebafeca) {
++		printf("SWEET EXEC: dump 16B: %08x %08x %08x %08x\n",
++		    hdr[0], hdr[1], hdr[2], hdr[3]);
++	}
++
+ encapsulated_binary:
+ 	/* Limit the number of iterations we will attempt on each binary */
+ 	if (++itercount > EAI_ITERLIMIT) {
+--- a/bsd/dev/sweet_ufs.c
++++ b/bsd/dev/sweet_ufs.c
+@@ -357,6 +357,9 @@
+ 	uint32_t count = buf_count(bp);
+ 	uint64_t part_bytes = su.nblocks * UFS_BLOCK;
+ 
++	if (count > 0 && off >= (1600ULL * 4096ULL) && off <= (1610ULL * 4096ULL)) {
++		printf("SWEET UFS: strat blkno=%llu secsz=%u off=0x%llx cnt=%u\n", (unsigned long long)buf_blkno(bp), su.secsize, off, count);
++	}
+ 	buf_setresid(bp, count);
+ 	if (!(buf_flags(bp) & B_READ)) {
+ 		error = EROFS;
