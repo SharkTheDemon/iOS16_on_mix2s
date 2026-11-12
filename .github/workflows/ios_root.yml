@@ -16,7 +16,7 @@ jobs:
 
       - name: Download iPhone X iOS 16.7.16 IPSW
         run: |
-          IPSW_URL="https://updates.cdn-apple.com/2025FallFCS/fullrestores/122-77006/1158E502-D76D-4226-AA06-ED5E30CD1111/iPhone10,3,iPhone10,6_16.7.16_20H392_Restore.ipsw"
+          IPSW_URL="https://updates.cdn-apple.com/2025FallFCS/fullrestores/122-77002/0281BFC6-38ED-485A-A8BE-8871861174B1/iPhone_4.7_P3_16.7.16_20H392_Restore.ipsw"
           echo "Downloading IPSW from Apple CDN..."
           curl -fSL -o ipsw.zip "$IPSW_URL"
           ls -lh ipsw.zip
