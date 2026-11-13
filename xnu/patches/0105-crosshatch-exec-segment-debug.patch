@@ -1,0 +1,61 @@
+--- a/bsd/kern/mach_loader.c
++++ b/bsd/kern/mach_loader.c
+@@ -1,6 +1,7 @@
+ #include <kern/debug.h>
+ #include <sys/sysctl.h>
++#include <sys/systm.h>
+ 
+ /*
+  * SWEET exec debug: instrument every LOAD_BADMACHO return in load_segment
+@@ -100,6 +101,10 @@ load_segment(
+ 		goto out;
+ 	}
+ 
++	printf("SWEET LOAD_SEG: %s vmaddr=0x%llx vmsize=0x%llx fileoff=0x%llx filesize=0x%llx macho_size=0x%llx PAGE_SIZE=0x%lx\n",
++	    scp->segname, (unsigned long long)scp->vmaddr, (unsigned long long)scp->vmsize,
++	    (unsigned long long)scp->fileoff, (unsigned long long)scp->filesize,
++	    (unsigned long long)macho_size, (unsigned long)PAGE_SIZE);
++
+ 	if (scp->fileoff > macho_size ||
+ 	    scp->filesize > macho_size - scp->fileoff) {
+-		ret = LOAD_BADMACHO;
+-		goto out;
++		printf("SWEET BADMACHO: fileoff/filesize out of range (fileoff=0x%llx filesize=0x%llx macho_size=0x%llx)\n",
++		    (unsigned long long)scp->fileoff, (unsigned long long)scp->filesize,
++		    (unsigned long long)macho_size);
++		ret = LOAD_BADMACHO; goto out;
+ 	}
+ 
+ 	if ((scp->filesize > 0) && (pager == MEMORY_OBJECT_NULL)) {
+-		ret = LOAD_BADMACHO;
+-		goto out;
++		printf("SWEET BADMACHO: filesize>0 but no pager (pager==NULL)\n");
++		ret = LOAD_BADMACHO; goto out;
+ 	}
+ 
+ 	if (scp->vmsize == 0) {
+@@ -120,16 +125,22 @@ load_segment(
+ 	}
+ 
+ 	if ((scp->vmsize % PAGE_SIZE) != 0) {
+-		ret = LOAD_BADMACHO;
+-		goto out;
++		printf("SWEET BADMACHO: vmsize=0x%llx not page-aligned (PAGE_SIZE=0x%lx)\n",
++		    (unsigned long long)scp->vmsize, (unsigned long)PAGE_SIZE);
++		ret = LOAD_BADMACHO; goto out;
+ 	}
+ 
+ 	if ((scp->vmaddr % PAGE_SIZE) != 0) {
+-		ret = LOAD_BADMACHO;
+-		goto out;
++		printf("SWEET BADMACHO: vmaddr=0x%llx not page-aligned (PAGE_SIZE=0x%lx)\n",
++		    (unsigned long long)scp->vmaddr, (unsigned long)PAGE_SIZE);
++		ret = LOAD_BADMACHO; goto out;
+ 	}
+ 
+ 	if (scp->vmsize > ULONG_MAX - scp->vmaddr) {
+-		ret = LOAD_BADMACHO;
+-		goto out;
++		printf("SWEET BADMACHO: vmaddr+vmsize overflow\n");
++		ret = LOAD_BADMACHO; goto out;
+ 	}

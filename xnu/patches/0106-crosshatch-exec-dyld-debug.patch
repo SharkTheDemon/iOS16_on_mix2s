@@ -1,0 +1,61 @@
+--- a/bsd/kern/mach_loader.c
++++ b/bsd/kern/mach_loader.c
+@@ -1,3 +1,4 @@
++#include <sys/systm.h>
+ /*
+  * SWEET exec debug: instrument load_dylinker and parse_machfile entry
+  */
+@@ -50,6 +51,10 @@ load_dylinker(
+ 	namep = (char *)lcp + lcp->name.offset;
+ 
++	printf("SWEET DYLD: load_dylinker called for '%s'\n", namep);
++
+ 	error = vnode_lookup(namep, 0, &vp, imgp->ip_vfs_context);
+ 	if (error) {
++		printf("SWEET DYLD: vnode_lookup('%s') failed: error=%d\n", namep, error);
+ 		return LOAD_FAILURE;
+ 	}
+ 
+@@ -65,8 +70,13 @@ load_dylinker(
+ 	    &file_size, imgp->ip_vfs_context);
+ 	if (error != KERN_SUCCESS) {
++		printf("SWEET DYLD: vnode_size failed: error=%d\n", error);
+ 		ret = LOAD_FAILURE;
+ 		goto out;
+ 	}
++	printf("SWEET DYLD: dyld file_size=%lld\n", (long long)file_size);
+ 
+ 	ret = parse_machfile(vp, map, thread, header, 0,
+ 	    file_size, depth + 1, aslr_offset, 0, result);
++	printf("SWEET DYLD: parse_machfile returned %d\n", (int)ret);
+ 	if (ret) {
+ 		goto out;
+ 	}
+@@ -120,6 +130,10 @@ parse_machfile(
+ 	    cputype, cpusubtype, filetype, ncmds, sizeofcmds, flags;
+ 
++	printf("SWEET PARSE: parse_machfile depth=%d filetype=%u cputype=0x%08x cpusubtype=0x%08x ncmds=%u macho_size=%lld\n",
++	    depth, header->filetype, header->cputype, header->cpusubtype,
++	    header->ncmds, (long long)macho_size);
++
+ 	switch (header->filetype) {
+ 	case MH_EXECUTE:
+ 		if (depth != 0) {
++			printf("SWEET PARSE: BADMACHO: MH_EXECUTE at depth %d\n", depth);
+ 			ret = LOAD_BADMACHO;
+ 			goto out;
+ 		}
+@@ -128,6 +142,7 @@ parse_machfile(
+ 	case MH_DYLINKER:
+ 		if (depth != 1) {
++			printf("SWEET PARSE: BADMACHO: MH_DYLINKER at depth %d (expected 1)\n", depth);
+ 			ret = LOAD_BADMACHO;
+ 			goto out;
+ 		}
+@@ -135,6 +150,7 @@ parse_machfile(
+ 	default:
+ 		if (depth != 0) {
++			printf("SWEET PARSE: BADMACHO: unknown filetype %d at depth %d\n", header->filetype, depth);
+ 			ret = LOAD_BADMACHO;
+ 			goto out;
+ 		}

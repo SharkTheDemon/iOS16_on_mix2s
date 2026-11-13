@@ -1,0 +1,28 @@
+--- a/bsd/kern/kern_exec.c
++++ b/bsd/kern/kern_exec.c
+@@ -2200,6 +2200,8 @@ exec_mach_imgact(struct image_params *imgp)
+ 	struct mach_header      *mach_header = (struct mach_header *)imgp->ip_vdata;
+ 	kern_return_t            kret;
+ 	int                      error = 0;
++	off_t                    _dbg_sz = 0;
++	int                      _dbg_sz_err = 0;
+ 	load_return_t            lret;
+ 	load_result_t            load_result;
+ 	struct mach_image_info   image_info;
+@@ -2215,6 +2217,13 @@ exec_mach_imgact(struct image_params *imgp)
+ 	if (resid) {
+ 		memset(imgp->ip_vdata + (PAGE_SIZE - resid), 0x0, resid);
+ 	}
++
++	_dbg_sz_err = vnode_size(imgp->ip_vp, &_dbg_sz, imgp->ip_vfs_context);
++	printf("SWEET EXEC2: activate '%s': resid=%lu vnode_size=%lld(err=%d) magic=0x%08x cpu=0x%08x sub=0x%08x type=%u ncmds=%u\n",
++	    imgp->ip_vp->v_name ? imgp->ip_vp->v_name : "?",
++	    (unsigned long)resid,
++	    (long long)_dbg_sz, _dbg_sz_err,
++	    ((uint32_t *)imgp->ip_vdata)[0],
++	    ((uint32_t *)imgp->ip_vdata)[1],
++	    ((uint32_t *)imgp->ip_vdata)[2],
++	    ((uint32_t *)imgp->ip_vdata)[3],
++	    ((uint32_t *)imgp->ip_vdata)[4]);
++
+ encapsulated_binary:
