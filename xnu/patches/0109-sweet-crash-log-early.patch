@@ -1,6 +1,8 @@
+diff --git a/bsd/kern/kern_exit.c b/bsd/kern/kern_exit.c
+index fde499c..abaad53 100644
 --- a/bsd/kern/kern_exit.c
 +++ b/bsd/kern/kern_exit.c
-@@ -1790,6 +1790,20 @@
+@@ -1789,6 +1789,14 @@ proc_handle_critical_exit(proc_t p, int rv)
  	}
  #endif /* DEVELOPMENT */
  
@@ -10,12 +12,6 @@
 +		sweet_crash_log(p->p_comm, proc_getpid(p), WTERMSIG(rv),
 +		    PROC_HAS_EXITREASON(p) ? p->p_exit_reason->osr_namespace : 0,
 +		    PROC_HAS_EXITREASON(p) ? p->p_exit_reason->osr_code : 0);
-+		if (PROC_HAS_EXITREASON(p)) {
-+			char *desc = exit_reason_get_string_desc(p->p_exit_reason);
-+			printf("CRASH %s reason ns %u code 0x%llx: %s\n", p->p_comm,
-+			    p->p_exit_reason->osr_namespace, p->p_exit_reason->osr_code,
-+			    desc != NULL ? desc : "(none)");
-+		}
 +	}
 +#endif
  	char *exit_reason_desc = exit_reason_get_string_desc(p->p_exit_reason);
